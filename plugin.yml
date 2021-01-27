@@ -1,0 +1,12 @@
+name: ProfileGUI
+main: me.DMan16.ProfileGUI.Main
+version: 1.0
+author: DMan16
+description: ProfileGUI
+api-version: 1.16
+softdepend: [Vault]
+
+commands:
+  profilegui:
+    aliases: [pgui]
+    usage: /<command> <config/reload>
