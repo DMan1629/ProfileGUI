@@ -43,6 +43,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
+import net.milkbowl.vault.chat.Chat;
+import net.milkbowl.vault.permission.Permission;
+
 public class MainListener implements Listener {
 	String menuName = "&b&lSkyBlock &8&lMenu";
 	private ItemStack menuItem;
@@ -203,6 +206,18 @@ public class MainListener implements Listener {
 	}
 	
 	private void updateInventory(Inventory inv, Player player) {
+		String rank = null;
+		Permission perm = Bukkit.getServer().getServicesManager().getRegistration(Permission.class).getProvider();
+		Chat chat = (Chat) Bukkit.getServer().getServicesManager().getRegistration(Chat.class).getProvider();
+		if (perm != null) {
+			rank = perm.getPrimaryGroup(player);
+			if (chat != null) {
+				String prefix = chat.getGroupPrefix(player.getWorld(),rank);
+				String suffix = chat.getGroupSuffix(player.getWorld(),rank);
+				rank = (prefix == null ? "" : prefix) + rank + (suffix == null ? "" : suffix);
+			}
+			rank = Utils.chatColorsToString(rank,"&");
+		}
 		inv.clear();
 		ItemStack item = getItem(Material.PLAYER_HEAD,Main.Config.menuFriendsButton());
 		SkullMeta skullMeta = (SkullMeta) item.getItemMeta();
@@ -217,9 +232,9 @@ public class MainListener implements Listener {
 				Utils.chatColorsToString(Main.economy.format(Double.parseDouble((new DecimalFormat("0.00")).format(Main.economy.getBalance(player)))),"&"))));
 		inv.setItem(menuIsland,worldItem(player.getWorld().getEnvironment()));
 		inv.setItem(menuPlayer,getItem(Material.NAME_TAG,Utils.chatColorsToString(player.getDisplayName() == null ? player.getName() :
-			player.getDisplayName(),"&"),Arrays.asList("","&fBlocks mined: &e" + Main.PlayersDataManager.get(player),"&fChests opened: &e" +
-					(player.getStatistic(Statistic.OPEN_BARREL) + player.getStatistic(Statistic.CHEST_OPENED) + player.getStatistic(Statistic.ENDERCHEST_OPENED) +
-							player.getStatistic(Statistic.SHULKER_BOX_OPENED)))));
+			player.getDisplayName(),"&"),Arrays.asList("",rank == null ? "" : "&fRank: " + rank + "\n","&fBlocks mined: &e" + Main.PlayersDataManager.get(player),
+					"&fChests opened: &e" + (player.getStatistic(Statistic.OPEN_BARREL) + player.getStatistic(Statistic.CHEST_OPENED) +
+							player.getStatistic(Statistic.ENDERCHEST_OPENED) + player.getStatistic(Statistic.SHULKER_BOX_OPENED)))));
 		inv.setItem(menuServer,getItem(Material.BOOK,"&3&lCreativeCraft &b&lSkyBlock",Arrays.asList("","&fPlayers: &a" + Bukkit.getServer().getOnlinePlayers().size() +
 				"&e/&b" + Bukkit.getServer().getMaxPlayers())));
 		inv.setItem(menuClock,getItem(Material.CLOCK,Main.Config.menuTimeButton(),Arrays.asList("","&fTime: &e" + player.getWorld().getTime() + " &cticks")));
